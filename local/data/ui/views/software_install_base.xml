@@ -1,0 +1,178 @@
+<form>
+  <label>Software Install base</label>
+  <search id="osSearch">
+    <query>tag=sam | eval os=case(tag=="windows","Windows", eventtype=="nix-all-logs" AND like(host,"%mba%"), "Mac", eventtype=="nix-all-logs","Linux") | stats dc(host) AS count by os</query>
+    <earliest>$field1.earliest$</earliest>
+    <latest>$field1.latest$</latest>
+  </search>
+  <fieldset submitButton="false">
+    <input type="time" token="field1" searchWhenChanged="true">
+      <label></label>
+      <default>
+        <earliest>@w0</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="host" searchWhenChanged="true">
+      <label>Host</label>
+      <choice value="*">All</choice>
+      <search>
+        <query>|inputlookup hosts.csv</query>
+      </search>
+      <fieldForLabel>host</fieldForLabel>
+      <fieldForValue>host</fieldForValue>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="app" searchWhenChanged="true">
+      <label>Application</label>
+      <choice value="*">All</choice>
+      <search>
+        <query>|inputlookup apps.csv</query>
+      </search>
+      <fieldForLabel>DisplayName</fieldForLabel>
+      <fieldForValue>DisplayName</fieldForValue>
+      <default>*</default>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <single>
+        <title>Windows hosts</title>
+        <search base="osSearch">
+          <query>| where os="Windows" | fields count</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="showSparkline">1</option>
+        <option name="showTrendIndicator">1</option>
+        <option name="trendColorInterpretation">standard</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="useColors">0</option>
+        <option name="useThousandSeparators">1</option>
+        <option name="linkView">search</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Mac hosts</title>
+        <search base="osSearch">
+          <query>| where os="Mac" | fields count</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="showSparkline">1</option>
+        <option name="showTrendIndicator">1</option>
+        <option name="trendColorInterpretation">standard</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="useColors">0</option>
+        <option name="useThousandSeparators">1</option>
+        <option name="linkView">search</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Linux hosts</title>
+        <search base="osSearch">
+          <query>| where os="Linux" | fields count</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="colorBy">value</option>
+        <option name="colorMode">none</option>
+        <option name="numberPrecision">0</option>
+        <option name="showSparkline">1</option>
+        <option name="showTrendIndicator">1</option>
+        <option name="trendColorInterpretation">standard</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="useColors">0</option>
+        <option name="useThousandSeparators">1</option>
+        <option name="linkView">search</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Count of Software by host</title>
+        <search>
+          <query>eventtype=installedapps host="$host$" 
+| rex max_match=0 "(?im)(?&lt;DisplayName&gt;[\w\s]*[^\s]{2,})\s{1,}(?&lt;Version&gt;[\w\s]*[^\s]{2,})\s{1,}" 
+| eval Display=mvzip(DisplayName, Version) 
+| mvexpand Display 
+| table Display host
+| rex field=Display "(?&lt;DisplayName&gt;.*),(?&lt;Version&gt;.*)" 
+| search DisplayName="$app$"
+| stats dc(DisplayName) AS Applications by host 
+| sort - Applications</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+    <panel>
+      <table>
+        <title>Count of hosts by Software</title>
+        <search>
+          <query>eventtype=installedapps host="$host$" 
+| rex max_match=0 "(?im)(?&lt;DisplayName&gt;[\w\s]*[^\s]{2,})\s{1,}(?&lt;Version&gt;[\w\s]*[^\s]{2,})\s{1,}" 
+| eval Display=mvzip(DisplayName, Version) 
+| mvexpand Display 
+| table Display host
+| rex field=Display "(?&lt;DisplayName&gt;.*),(?&lt;Version&gt;.*)" 
+| search DisplayName="$app$"
+| stats dc(host) AS Hosts by DisplayName,Version 
+| sort - Hosts</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Software details by host</title>
+        <search>
+          <query>eventtype=installedapps host="$host$" 
+| rex max_match=0 "(?im)(?&lt;DisplayName&gt;[\w\s]*[^\s]{2,})\s{1,}(?&lt;Version&gt;[\w\s]*[^\s]{2,})\s{1,}" 
+| eval Display=mvzip(DisplayName, Version) 
+| mvexpand Display 
+| table Display host
+| rex field=Display "(?&lt;DisplayName&gt;.*),(?&lt;Version&gt;.*)" 
+| search DisplayName="$app$"
+| stats count by host,DisplayName,Version 
+| fields - count</query>
+          <earliest>$field1.earliest$</earliest>
+          <latest>$field1.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="rowNumbers">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+</form>

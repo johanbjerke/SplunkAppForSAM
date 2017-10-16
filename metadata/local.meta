@@ -1,0 +1,23 @@
+[app/install/install_source_checksum]
+version = 7.0.0
+modtime = 1508148939.404011000
+
+[inputs/monitor%3A%2F%2F%24SPLUNK_HOME%2Fetc%2Fapps%2FSplunkAppForSAM%2Fsamples%2Fps.log]
+version = 7.0.0
+modtime = 1508150683.776332000
+
+[inputs/monitor%3A%2F%2F%24SPLUNK_HOME%2Fetc%2Fapps%2FSplunkAppForSAM%2Fsamples%2Ftop.log]
+version = 7.0.0
+modtime = 1508150687.644105000
+
+[savedsearches/Generate%20running%20apps%20lookup%20-%20Scheduled]
+version = 7.0.0
+modtime = 1508155907.775278000
+
+[savedsearches/Generate%20installed%20apps%20lookup%20-%20Scheduled]
+version = 7.0.0
+modtime = 1508158372.348917000
+
+[views/software_install_base]
+version = 7.0.0
+modtime = 1508159008.561655000
